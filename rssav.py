@@ -679,22 +679,22 @@ class RSSav:
         if var == 'feel':
             return self.pkm_sset(pkm, 2, 11, value)
         if var == 'maxhpiv':
-            ivs = (self.pkm_sgetdw(pkm, 3, 4) & 4294967295L - 31) + ((value & 31) << 0)
+            ivs = (self.pkm_sgetdw(pkm, 3, 4) & 4294967295 - 31) + ((value & 31) << 0)
             return self.pkm_ssetdw(pkm, 3, 4, ivs)
         if var == 'attackiv':
-            ivs = (self.pkm_sgetdw(pkm, 3, 4) & 4294967295L - 992) + ((value & 31) << 5)
+            ivs = (self.pkm_sgetdw(pkm, 3, 4) & 4294967295 - 992) + ((value & 31) << 5)
             return self.pkm_ssetdw(pkm, 3, 4, ivs)
         if var == 'defenseiv':
-            ivs = (self.pkm_sgetdw(pkm, 3, 4) & 4294967295L - 31744) + ((value & 31) << 10)
+            ivs = (self.pkm_sgetdw(pkm, 3, 4) & 4294967295 - 31744) + ((value & 31) << 10)
             return self.pkm_ssetdw(pkm, 3, 4, ivs)
         if var == 'speediv':
-            ivs = (self.pkm_sgetdw(pkm, 3, 4) & 4294967295L - 1015808) + ((value & 31) << 15)
+            ivs = (self.pkm_sgetdw(pkm, 3, 4) & 4294967295 - 1015808) + ((value & 31) << 15)
             return self.pkm_ssetdw(pkm, 3, 4, ivs)
         if var == 'specialattackiv':
-            ivs = (self.pkm_sgetdw(pkm, 3, 4) & 4294967295L - 32505856) + ((value & 31) << 20)
+            ivs = (self.pkm_sgetdw(pkm, 3, 4) & 4294967295 - 32505856) + ((value & 31) << 20)
             return self.pkm_ssetdw(pkm, 3, 4, ivs)
         if var == 'specialdefenseiv':
-            ivs = (self.pkm_sgetdw(pkm, 3, 4) & 4294967295L - 1040187392) + ((value & 31) << 25)
+            ivs = (self.pkm_sgetdw(pkm, 3, 4) & 4294967295 - 1040187392) + ((value & 31) << 25)
             return self.pkm_ssetdw(pkm, 3, 4, ivs)
         if var == 'move1pp':
             return self.pkm_sset(pkm, 1, 8, value)

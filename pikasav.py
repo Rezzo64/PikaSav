@@ -3,10 +3,10 @@ Created on 07/04/2011
 
 @author: Ritchie
 """
-from Tkinter import *
-from Tix import *
-from tkFileDialog import *
-from tkMessageBox import *
+from tkinter import *
+from tkinter.tix import *
+from tkinter.filedialog import *
+from tkinter.messagebox import *
 from random import randint
 from rbsav import RBSav
 from gssav import GSSav
@@ -11122,14 +11122,14 @@ class PikaSav():
             # Item
             if self.gen == 2:
                 for index in range(len(items_gs)):
-                    if unicode(items_gs[index], 'utf-8').find(pkmn['Item']) != -1:
+                    if str(items_gs[index], 'utf-8').find(pkmn['Item']) != -1:
                         self.pkm = self.sav.pkm_set(self.pkm, 'item', index)
                         break
                 else:
                     self.pkm = self.sav.pkm_set(self.pkm, 'item', 0)
             elif self.gen == 3:
                 for index in range(len(items_rs)):
-                    if unicode(items_rs[index], 'utf-8').find(pkmn['Item']) != -1:
+                    if str(items_rs[index], 'utf-8').find(pkmn['Item']) != -1:
                         self.pkm = self.sav.pkm_set(self.pkm, 'item', index)
                         break
                 else:
