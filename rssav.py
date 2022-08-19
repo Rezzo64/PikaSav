@@ -183,7 +183,7 @@ class RSSav:
             flsize = FLtable[blockid]
             rschecksum = 0
             flchecksum = 0
-            self.checksum = ord(self.buffer[start + 4086]) + ord(self.buffer[start + 4087]) * 256
+            self.checksum = self.buffer[start + 4086] + self.buffer[start + 4087] * 256
             if self.gsaveid[blockid] < saveid:
                 self.gbuffers[blockid] = self.buffer[start:start + 3968]
                 self.gsaveid[blockid] = saveid
