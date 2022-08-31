@@ -41,7 +41,7 @@ class CRSav:
         self.dtable = table
         for x in range(256):
             if len(table[x]) == 1:
-                etable[(table[x])] = chr(x)
+                etable[ord(table[x])] = chr(x)
 
         self.etable = etable
         self.file = file
@@ -130,9 +130,10 @@ class CRSav:
 
     def setbyte(self, byte, value, string = None):
         if string == None:
-            self.buffer = self.buffer[0:byte] + chr(value) + self.buffer[byte + 1:]
+            self.buffer[0:byte].decode("latin-1") + chr(value)
+            self.buffer[byte + 1:].decode("latin-1")
         else:
-            return string[0:byte] + chr(value) + string[byte + 1:]
+            return string[0:byte].decode("latin-1") + chr(value) + string[byte + 1:].decode("latin-1")
 
     def load_time(self):
         self.hours = (self.buffer[8275])

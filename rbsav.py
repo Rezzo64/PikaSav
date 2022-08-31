@@ -86,9 +86,9 @@ class RBSav:
         start = 9624
         size = 3979
         checksum = 255
-        self.checksum = ord(self.buffer[13603])
+        self.checksum = self.buffer[13603]
         for x in range(size):
-            checksum -= ord(self.buffer[x + start])
+            checksum -= self.buffer[x + start]
             checksum &= 255
 
         if checksum == self.checksum:
@@ -131,26 +131,27 @@ class RBSav:
 
     def setbyte(self, byte, value, string = None):
         if string == None:
-            self.buffer = self.buffer[0:byte] + chr(value) + self.buffer[byte + 1:]
+            self.buffer[0:byte].decode("latin-1") + chr(value)
+            self.buffer[byte + 1:].decode("latin-1")
         else:
             return string[0:byte] + chr(value) + string[byte + 1:]
 
     def load_time(self):
-        self.hours = ord(self.buffer[11501])
-        self.hours += ord(self.buffer[11502]) * 256
-        self.minutes = ord(self.buffer[11503])
-        self.seconds = ord(self.buffer[11504])
+        self.hours = self.buffer[11501]
+        self.hours += self.buffer[11502] * 256
+        self.minutes = self.buffer[11503]
+        self.seconds = self.buffer[11504]
 
     def load_options(self):
-        options = ord(self.buffer[9729])
+        options = self.buffer[9729]
         self.animation = not options >> 7
         self.mantain = options >> 6 & 1
         self.textspeed = options & 15
 
     def setpokedex(self, x, isseen, iscatched):
         pos = 2 ** ((x - 1) % 8)
-        seen = ord(self.buffer[9635 + (x - 1) // 8])
-        catched = ord(self.buffer[9654 + (x - 1) // 8])
+        seen = self.buffer[9635 + (x - 1) // 8]
+        catched = self.buffer[9654 + (x - 1) // 8]
         if self.seen[x] != isseen:
             seen ^= pos
         if self.catched[x] != iscatched:
@@ -162,14 +163,14 @@ class RBSav:
         self.seen = [0] * 256
         self.catched = [0] * 256
         for x in range(19):
-            catched = ord(self.buffer[9635 + x])
-            seen = ord(self.buffer[9654 + x])
+            catched = self.buffer[9635 + x]
+            seen = self.buffer[9654 + x]
             for y in range(8):
                 self.catched[x * 8 + y + 1] = catched >> y & 1
                 self.seen[x * 8 + y + 1] = seen >> y & 1
 
     def load_badges(self):
-        badgesmap = ord(self.buffer[9730])
+        badgesmap = self.buffer[9730]
         self.badges = [0] * 8
         for x in range(8):
             self.badges[x] = badgesmap >> x & 1
@@ -177,31 +178,31 @@ class RBSav:
     def load_items(self):
         items = [[0, 0]] * 50
         for x in range(50):
-            item = ord(self.buffer[9674 + 2 * x])
-            count = ord(self.buffer[9675 + 2 * x])
+            item = self.buffer[9674 + 2 * x]
+            count = self.buffer[9675 + 2 * x]
             items[x] = [item, count]
 
         self.items = items
-        self.itemcount = ord(self.buffer[9673])
+        self.itemcount = self.buffer[9673]
         pcitems = [[0, 0]] * 50
         for x in range(50):
-            item = ord(self.buffer[10215 + 2 * x])
-            count = ord(self.buffer[10216 + 2 * x])
+            item = self.buffer[10215 + 2 * x]
+            count = self.buffer[10216 + 2 * x]
             pcitems[x] = [item, count]
 
         self.pcitems = pcitems
-        self.pcitemcount = ord(self.buffer[10214])
+        self.pcitemcount = self.buffer[10214]
 
     def load_pokemon(self):
         self.pokemon = [''] * 6
         self.pcpokemon = [''] * 240
-        self.pokemoncount = ord(self.buffer[12076])
+        self.pokemoncount = self.buffer[12076]
         self.boxpokemoncount = [0] * 12
         self.boxoffset = [0] * 12
         for p in range(6):
             self.pokemon[p] = self.pkm(12077 + p, 12348 + 11 * p, 12414 + 11 * p, 12084 + 44 * p)
 
-        self.currentbox = ord(self.buffer[10316]) & 127
+        self.currentbox = self.buffer[10316] & 127
         for b in range(12):
             offset = 16384 + b // 6 * 8192 + 1122 * (b % 6)
             if b == self.currentbox:
@@ -210,7 +211,7 @@ class RBSav:
             for p in range(20):
                 self.pcpokemon[20 * b + p] = self.pcpkm(offset + 1 + p, offset + 682 + p * 11, offset + 902 + p * 11, offset + 22 + p * 33)
 
-            self.boxpokemoncount[b] = ord(self.buffer[offset])
+            self.boxpokemoncount[b] = self.buffer[offset]
 
     def setpokemon(self, p, pkm):
         self.pkm(12077 + p, 12348 + 11 * p, 12414 + 11 * p, 12084 + 44 * p, pkm)
@@ -223,129 +224,129 @@ class RBSav:
 
     def pkm(self, off_hex, off_otname, off_name, off_data, data = None):
         if data == None:
-            pkm = self.buffer[off_hex]
+            pkm = bytes(self.buffer[off_hex])
             pkm += self.buffer[off_otname:off_otname + 11]
             pkm += self.buffer[off_name:off_name + 11]
             pkm += self.buffer[off_data:off_data + 44]
             return pkm
-        self.setbyte(off_hex, ord(data[0]))
+        self.setbyte(off_hex, data[0])
         self.buffer = self.buffer[0:off_otname] + data[1:12] + self.buffer[off_otname + 11:]
         self.buffer = self.buffer[0:off_name] + data[12:23] + self.buffer[off_name + 11:]
         self.buffer = self.buffer[0:off_data] + data[23:67] + self.buffer[off_data + 44:]
 
     def pcpkm(self, off_hex, off_otname, off_name, off_data, data = None):
         if data == None:
-            pkm = self.buffer[off_hex]
+            pkm = bytes(self.buffer[off_hex])
             pkm += self.buffer[off_otname:off_otname + 11]
             pkm += self.buffer[off_name:off_name + 11]
             pkm += self.buffer[off_data:off_data + 33]
             return pkm
-        self.setbyte(off_hex, ord(data[0]))
+        self.setbyte(off_hex, data[0])
         self.buffer = self.buffer[0:off_otname] + data[1:12] + self.buffer[off_otname + 11:]
         self.buffer = self.buffer[0:off_name] + data[12:23] + self.buffer[off_name + 11:]
         self.buffer = self.buffer[0:off_data] + data[23:67] + self.buffer[off_data + 33:]
 
     def pkm_get(self, pkm, var):
         if var == 'sprite':
-            return ord(pkm[0])
+            return pkm[0]
         if var == 'num':
-            return ord(pkm[23])
+            return pkm[23]
         if var == 'otname':
             return self.decode(pkm[1:11])
         if var == 'name':
             return self.decode(pkm[12:22])
         if var == 'hp':
-            return ord(pkm[25]) + ord(pkm[24]) * 256
+            return pkm[25] + pkm[24] * 256
         if var == 'level':
-            return ord(pkm[26])
+            return pkm[26]
         if var == 'asleep':
-            if ord(pkm[27]) & 7:
+            if pkm[27] & 7:
                 return True
             return False
         if var == 'poisoned':
-            if ord(pkm[27]) & 8:
+            if pkm[27] & 8:
                 return True
             return False
         if var == 'burned':
-            if ord(pkm[27]) & 16:
+            if pkm[27] & 16:
                 return True
             return False
         if var == 'frozen':
-            if ord(pkm[27]) & 32:
+            if pkm[27] & 32:
                 return True
             return False
         if var == 'paralyzed':
-            if ord(pkm[27]) & 64:
+            if pkm[27] & 64:
                 return True
             return False
         if var == 'ok':
-            if ord(pkm[27]) & 127:
+            if pkm[27] & 127:
                 return False
             return True
         if var == 'type1':
-            return ord(pkm[28])
+            return pkm[28]
         if var == 'type2':
-            return ord(pkm[29])
+            return pkm[29]
         if var == 'catchrate':
-            return ord(pkm[30])
+            return pkm[30]
         if var == 'move1':
-            return ord(pkm[31])
+            return pkm[31]
         if var == 'move2':
-            return ord(pkm[32])
+            return pkm[32]
         if var == 'move3':
-            return ord(pkm[33])
+            return pkm[33]
         if var == 'move4':
-            return ord(pkm[34])
+            return pkm[34]
         if var == 'otnum':
-            return ord(pkm[36]) + ord(pkm[35]) * 256
+            return pkm[36] + pkm[35] * 256
         if var == 'exp':
-            return ord(pkm[39]) + ord(pkm[38]) * 256 + ord(pkm[37]) * 65536
+            return pkm[39] + pkm[38] * 256 + pkm[37] * 65536
         if var == 'maxhpev':
-            return ord(pkm[41]) + ord(pkm[40]) * 256
+            return pkm[41] + pkm[40] * 256
         if var == 'attackev':
-            return ord(pkm[43]) + ord(pkm[42]) * 256
+            return pkm[43] + pkm[42] * 256
         if var == 'defenseev':
-            return ord(pkm[45]) + ord(pkm[44]) * 256
+            return pkm[45] + pkm[44] * 256
         if var == 'speedev':
-            return ord(pkm[47]) + ord(pkm[46]) * 256
+            return pkm[47] + pkm[46] * 256
         if var == 'specialev':
-            return ord(pkm[49]) + ord(pkm[48]) * 256
+            return pkm[49] + pkm[48] * 256
         if var == 'attackiv':
-            return ord(pkm[50]) >> 4
+            return okm[50] >> 4
         if var == 'defenseiv':
-            return ord(pkm[50]) & 15
+            return pkm[50] & 15
         if var == 'speediv':
-            return ord(pkm[51]) >> 4
+            return pkm[51] >> 4
         if var == 'specialiv':
-            return ord(pkm[51]) & 15
+            return pkm[51] & 15
         if var == 'move1pp':
-            return ord(pkm[52]) & 63
+            return pkm[52] & 63
         if var == 'move1ppup':
-            return (ord(pkm[52]) & 192) >> 6
+            return (pkm[52] & 192) >> 6
         if var == 'move2pp':
-            return ord(pkm[53]) & 63
+            return pkm[53] & 63
         if var == 'move2ppup':
-            return (ord(pkm[53]) & 192) >> 6
+            return (pkm[53] & 192) >> 6
         if var == 'move3pp':
-            return ord(pkm[54]) & 63
+            return pkm[54] & 63
         if var == 'move3ppup':
-            return (ord(pkm[54]) & 192) >> 6
+            return (pkm[54] & 192) >> 6
         if var == 'move4pp':
-            return ord(pkm[55]) & 63
+            return pkm[55] & 63
         if var == 'move4ppup':
-            return (ord(pkm[55]) & 192) >> 6
+            return (pkm[55] & 192) >> 6
         if var == 'curlevel':
-            return ord(pkm[56])
+            return pkm[56]
         if var == 'maxhp':
-            return ord(pkm[58]) + ord(pkm[57]) * 256
+            return pkm[58] + pkm[57] * 256
         if var == 'attack':
-            return ord(pkm[60]) + ord(pkm[59]) * 256
+            return pkm[60] + pkm[59] * 256
         if var == 'defense':
-            return ord(pkm[62]) + ord(pkm[61]) * 256
+            return pkm[62] + pkm[61] * 256
         if var == 'speed':
-            return ord(pkm[64]) + ord(pkm[63]) * 256
+            return pkm[64] + pkm[63] * 256
         if var == 'special':
-            return ord(pkm[66]) + ord(pkm[65]) * 256
+            return pkm[66] + pkm[65] * 256
 
     def pkm_set(self, pkm, var, value):
         if var == 'sprite':
@@ -364,35 +365,35 @@ class RBSav:
         if var == 'level':
             pkm = self.setbyte(26, value, pkm)
         if var == 'asleep':
-            status = ord(pkm[27])
+            status = pkm[27]
             if value:
                 status |= 4
             else:
                 status &= 248
             pkm = self.setbyte(27, status, pkm)
         if var == 'poisoned':
-            status = ord(pkm[27])
+            status = pkm[27]
             if value:
                 status |= 8
             else:
                 status &= 247
             pkm = self.setbyte(27, status, pkm)
         if var == 'burned':
-            status = ord(pkm[27])
+            status = pkm[27]
             if value:
                 status |= 16
             else:
                 status &= 239
             pkm = self.setbyte(27, status, pkm)
         if var == 'frozen':
-            status = ord(pkm[27])
+            status = pkm[27]
             if value:
                 status |= 32
             else:
                 status &= 223
             pkm = self.setbyte(27, status, pkm)
         if var == 'paralyzed':
-            status = ord(pkm[27])
+            status = pkm[27]
             if value:
                 status |= 64
             else:
@@ -435,51 +436,51 @@ class RBSav:
             pkm = self.setbyte(49, value & 255, pkm)
             pkm = self.setbyte(48, value >> 8, pkm)
         if var == 'attackiv':
-            iv = ord(pkm[50]) & 15
+            iv = pkm[50] & 15
             iv += value << 4
             pkm = self.setbyte(50, iv, pkm)
         if var == 'defenseiv':
-            iv = ord(pkm[50]) & 240
+            iv = pkm[50] & 240
             iv += value & 15
             pkm = self.setbyte(50, iv, pkm)
         if var == 'speediv':
-            iv = ord(pkm[51]) & 15
+            iv = pkm[51] & 15
             iv += value << 4
             pkm = self.setbyte(51, iv, pkm)
         if var == 'specialiv':
-            iv = ord(pkm[51]) & 240
+            iv = pkm[51] & 240
             iv += value & 15
             pkm = self.setbyte(51, iv, pkm)
         if var == 'move1pp':
-            pp = ord(pkm[52]) & 192
+            pp = pkm[52] & 192
             pp += value & 63
             pkm = self.setbyte(52, pp, pkm)
         if var == 'move1ppup':
-            pp = ord(pkm[52]) & 63
+            pp = pkm[52] & 63
             pp += value << 6
             pkm = self.setbyte(52, pp, pkm)
         if var == 'move2pp':
-            pp = ord(pkm[53]) & 192
+            pp = pkm[53] & 192
             pp += value & 63
             pkm = self.setbyte(53, pp, pkm)
         if var == 'move2ppup':
-            pp = ord(pkm[53]) & 63
+            pp = pkm[53] & 63
             pp += value << 6
             pkm = self.setbyte(53, pp, pkm)
         if var == 'move3pp':
-            pp = ord(pkm[54]) & 192
+            pp = pkm[54] & 192
             pp += value & 63
             pkm = self.setbyte(54, pp, pkm)
         if var == 'move3ppup':
-            pp = ord(pkm[54]) & 63
+            pp = pkm[54] & 63
             pp += value << 6
             pkm = self.setbyte(54, pp, pkm)
         if var == 'move4pp':
-            pp = ord(pkm[55]) & 192
+            pp = pkm[55] & 192
             pp += value & 63
             pkm = self.setbyte(55, pp, pkm)
         if var == 'move4ppup':
-            pp = ord(pkm[55]) & 63
+            pp = pkm[55] & 63
             pp += value << 6
             pkm = self.setbyte(55, pp, pkm)
         if var == 'curlevel':
@@ -511,11 +512,11 @@ class RBSav:
 
     def load_money(self):
         money = ''
-        money += hex(ord(self.buffer[9715]))[2:].rjust(2, '0')
-        money += hex(ord(self.buffer[9716]))[2:].rjust(2, '0')
-        money += hex(ord(self.buffer[9717]))[2:].rjust(2, '0')
-        chips = hex(ord(self.buffer[10320]))[2:].rjust(2, '0')
-        chips += hex(ord(self.buffer[10321]))[2:].rjust(2, '0')
+        money += hex(self.buffer[9715])[2:].rjust(2, '0')
+        money += hex(self.buffer[9716])[2:].rjust(2, '0')
+        money += hex(self.buffer[9717])[2:].rjust(2, '0')
+        chips = hex(self.buffer[10320])[2:].rjust(2, '0')
+        chips += hex(self.buffer[10321])[2:].rjust(2, '0')
         self.chips = 0
         if 'f' not in chips:
             self.chips = int(chips)
@@ -530,7 +531,7 @@ class RBSav:
     def decode(self, string):
         decoded = ''
         for c in range(len(string)):
-            dec = ord(string[c])
+            dec = string[c]
             if self.dtable[dec] != '':
                 decoded += self.dtable[dec]
             elif dec == 80:
@@ -541,7 +542,7 @@ class RBSav:
     def encode(self, string, fill = 0):
         encoded = ''
         for c in range(len(string)):
-            dec = ord(string[c])
+            dec = string[c]
             if len(self.etable[dec]):
                 encoded += self.etable[dec]
 
