@@ -312,7 +312,7 @@ class RBSav:
         if var == 'specialev':
             return pkm[49] + pkm[48] * 256
         if var == 'attackiv':
-            return okm[50] >> 4
+            return pkm[50] >> 4
         if var == 'defenseiv':
             return pkm[50] & 15
         if var == 'speediv':
